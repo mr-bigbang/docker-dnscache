@@ -12,11 +12,11 @@ RUN cd admin/daemontools-0.76 && sed -i 's/gcc -O2/gcc -O2 -include \/usr\/inclu
 WORKDIR /tmp
 RUN curl --silent https://cr.yp.to/djbdns/djbdns-1.05.tar.gz -o djbdns-1.05.tar.gz
 RUN tar -xf djbdns-1.05.tar.gz && rm djbdns-1.05.tar.gz
-# Prevent DNS poisonig attacks
-# http//your.org/dnscache
-RUN curl --silent http://www.your.org/dnscache/0001-dnscache-merge-similar-outgoing-queries.patch -o 01.patch
-RUN curl --silent http://www.your.org/dnscache/0002-dnscache-cache-soa-records.patch -o 02.patch
-RUN cd djbdns-1.05 && patch -p1 < ../01.patch && patch -p1 ../02.patch && rm ../01.patch ../02.patch
+# Add IPv6 patch by Fefe
+# https://fefe.de/dns
+RUN curl --silent https://www.fefe.de/dns/djbdns-1.05-test28.diff.xz -o djbdns-1.05-test28.diff.xz
+RUN unxz /tmp/djbdns-1.05-test28.diff.xz
+RUN cd djbdns-1.05 && patch -p1 < ../djbdns-1.05-test28.diff && rm /tmp/djbdns-1.05-test28.diff
 RUN cd djbdns-1.05 && echo gcc -O2 -include /usr/include/errno.h > conf-cc && make && make setup check
 # Fetch current DNS root server
 RUN dnsip `dnsqr ns . | awk '/answer:/ { print $5; }' |sort` > /etc/dnsroots.global
